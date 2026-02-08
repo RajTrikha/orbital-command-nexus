@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #09090b;
+  --foreground: #fafafa;
+  --font-geist-sans: "Sora", "Avenir Next", "Segoe UI", sans-serif;
+  --font-geist-mono: "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+  --orbital-mouse-x: 50%;
+  --orbital-mouse-y: 38%;
 }
 
 @theme inline {
@@ -12,15 +16,124 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+@keyframes stars-drift {
+  from {
+    transform: translateY(0) scale(1);
+  }
+  to {
+    transform: translateY(-120px) scale(1.04);
+  }
+}
+
+@keyframes orbital-spin-a {
+  from {
+    transform: translateX(-50%) rotate(0deg);
+  }
+  to {
+    transform: translateX(-50%) rotate(360deg);
+  }
+}
+
+@keyframes orbital-spin-b {
+  from {
+    transform: translateX(-50%) rotate(360deg);
+  }
+  to {
+    transform: translateX(-50%) rotate(0deg);
+  }
+}
+
+@keyframes satellite-orbit {
+  from {
+    transform: translateX(-50%) rotate(0deg) translateX(220px);
+  }
+  to {
+    transform: translateX(-50%) rotate(360deg) translateX(220px);
+  }
+}
+
+.orbital-gradient {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(circle at var(--orbital-mouse-x) var(--orbital-mouse-y), rgba(34, 211, 238, 0.2), transparent 34%),
+    radial-gradient(circle at 18% 24%, rgba(14, 165, 233, 0.18), transparent 36%),
+    radial-gradient(circle at 84% 20%, rgba(59, 130, 246, 0.16), transparent 30%),
+    linear-gradient(180deg, #020617 0%, #09090b 56%, #111827 100%);
+}
+
+.orbital-stars {
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(224, 242, 254, 0.8) 0.8px, transparent 1px),
+    radial-gradient(circle at 80% 65%, rgba(125, 211, 252, 0.65) 1px, transparent 1.2px),
+    radial-gradient(circle at 55% 35%, rgba(186, 230, 253, 0.45) 0.8px, transparent 1px);
+  background-size: 180px 180px, 140px 140px, 220px 220px;
+  animation: stars-drift 120s linear infinite;
+}
+
+.orbital-grid {
+  position: absolute;
+  inset: -10%;
+  opacity: 0.11;
+  background-image:
+    linear-gradient(rgba(125, 211, 252, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(125, 211, 252, 0.2) 1px, transparent 1px);
+  background-size: 88px 88px;
+  mask-image: radial-gradient(circle at 50% 36%, #000 32%, transparent 74%);
+}
+
+.orbital-ring {
+  position: absolute;
+  left: 50%;
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.24);
+  box-shadow: 0 0 60px rgba(14, 165, 233, 0.1);
+}
+
+.orbital-ring-a {
+  top: 5%;
+  width: min(90vw, 920px);
+  height: min(90vw, 920px);
+  animation: orbital-spin-a 95s linear infinite;
+}
+
+.orbital-ring-b {
+  top: 16%;
+  width: min(72vw, 700px);
+  height: min(72vw, 700px);
+  border-color: rgba(103, 232, 249, 0.28);
+  animation: orbital-spin-b 70s linear infinite;
+}
+
+.orbital-satellite {
+  position: absolute;
+  left: 50%;
+  top: 32%;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #67e8f9;
+  box-shadow: 0 0 16px rgba(103, 232, 249, 0.8);
+}
+
+.orbital-satellite-a {
+  animation: satellite-orbit 20s linear infinite;
+}
+
+.orbital-satellite-b {
+  top: 38%;
+  width: 6px;
+  height: 6px;
+  background: #38bdf8;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.85);
+  animation: satellite-orbit 28s linear infinite reverse;
 }
