@@ -386,13 +386,18 @@ function TamboStateUserKeyBridge() {
           ? (options as { query?: Record<string, unknown> })
           : undefined;
       const query = rawOptions?.query ?? {};
-      return originalUpdateState(componentID, params, {
+      const paramsObject = params as unknown as { [key: string]: unknown };
+      const paramsWithUserKey = {
+        ...paramsObject,
+        userKey: paramsObject.userKey ?? effectiveUserKey,
+      } as unknown as typeof params;
+      return originalUpdateState(componentID, paramsWithUserKey as typeof params, {
         ...(rawOptions ?? {}),
         query: {
           ...query,
           userKey: query.userKey ?? effectiveUserKey,
         },
-      });
+      } as { query?: Record<string, unknown> });
     };
 
     // eslint-disable-next-line react-hooks/immutability
