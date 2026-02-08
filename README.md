@@ -5,6 +5,7 @@ AI-powered mission control dashboard where **Tambo generates the UI in real time
 ## Live Demo
 
 - Production: [https://orbital-command-nexus.vercel.app](https://orbital-command-nexus.vercel.app)
+- YouTube video link: https://www.youtube.com/watch?v=zEmPeVuNlHk
 
 ## What This Project Does
 
