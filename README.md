@@ -1,49 +1,67 @@
-# A.T.C. — Agent Traffic Control
+# Orbital Command Nexus
 
-A **Generative Mission Control** dashboard built with Next.js where the UI reshapes itself based on AI-driven decisions. Powered by **Tambo** as the generative UI decision engine.
+AI-powered mission control dashboard where **Tambo generates the UI in real time** based on telemetry, risk context, and operator actions.
 
-## How It Works
+## Live Demo
 
-1. **Tambo** analyzes agent events described in natural language
-2. Tambo selects which UI panel to render and generates structured props
-3. The output is validated against a **Zod** discriminated union schema
-4. **MissionControl** renders the appropriate panel with animated transitions
+- Production: [https://orbital-command-nexus.vercel.app](https://orbital-command-nexus.vercel.app)
 
-### UI Panels
+## What This Project Does
 
-| Panel | Purpose |
-|-------|---------|
-| **CalmDashboard** | Default view — all systems nominal |
-| **FleetMap** | Geographic hazard detection and route visualization |
-| **SystemsConsole** | System metrics with suggested remediation commands |
-| **ApprovalGate** | Human-in-the-loop authorization for risky agent actions |
+Orbital Command Nexus turns natural-language mission events into the right operational interface at runtime:
 
-### Schema-Driven & Validated
+- `FleetMap` for geospatial hazard and route context
+- `ApprovalGate` for human authorization on risky maneuvers
+- `MissionChecklist` for actionable execution tasks
+- `SystemsConsole` for incident remediation and override controls
+- `CalmDashboard` fallback for nominal conditions
 
-All AI output is validated with Zod before rendering. If Tambo returns invalid JSON, the app falls back to CalmDashboard — it never crashes on bad model output.
+The workflow is human-in-the-loop: operator clicks (approve/deny, checklist progress, override auth) are synced back to Tambo state and influence the next generated panel.
 
-### Human-in-the-Loop
+## How Tambo Is Used
 
-The **ApprovalGate** panel enables human authorization for high-risk agent actions, with risk-level badges and approve/deny controls.
+This app uses Tambo as the decision and rendering runtime, not just as chat:
 
-## Getting Started
+- Registers components in `TamboV1Provider` for model-driven panel selection
+- Registers tools for telemetry and hazard grounding
+- Uses `useTamboV1ComponentState` for interactable state sync back to AI
+- Uses Tambo thread hooks for input, streaming, suggestions, and voice
+- Includes a tool-to-UI trace to explain why each panel was rendered
+
+## Architecture
+
+- **Frontend**: Next.js App Router + React + TypeScript
+- **UI Motion**: Framer Motion
+- **Validation**: Zod schemas for component props/state contracts
+- **State Flow**:
+  - Tool outputs + prompt context -> generated component
+  - Operator interaction -> synced component state
+  - Synced state -> next AI step + next generated component
+
+## Quick Start
+
+### 1) Install
 
 ```bash
 npm install
 ```
 
-### Environment Variables
+### 2) Configure env
 
-Create a `.env.local` file:
+Create `.env.local`:
 
-```
+```bash
 NEXT_PUBLIC_TAMBO_API_KEY=your_tambo_api_key_here
 NEXT_PUBLIC_TAMBO_USER_KEY=orbital-operator
 ```
 
-The app works without an API key — demo mode is always available. AI mode requires a valid Tambo API key.
+Notes:
 
-### Run
+- Demo mode works without an API key.
+- AI mode requires a valid `NEXT_PUBLIC_TAMBO_API_KEY`.
+- Keep `NEXT_PUBLIC_TAMBO_USER_KEY` set to avoid context identifier errors.
+
+### 3) Run locally
 
 ```bash
 npm run dev
@@ -51,15 +69,29 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-- Use **Calm / Map / Auth / Sys** buttons to browse demo panels
-- Click **AI** to enter AI mode, then describe an agent event (e.g., "Truck-01 hazard hurricane near NYC")
+## Recommended Demo Flow
+
+1. `New Thread`
+2. `1. Orbital Hazard Map`
+3. `2. Burn Approval` -> click `Approve`
+4. `3. Mission Checklist` -> check tasks
+5. `4. Ground Systems Alert` -> click `Authorize Ground Override`
+6. Open `Tool Trace` to show explainability
+
+## Scripts
+
+- `npm run dev` - start dev server
+- `npm run build` - production build
+- `npm run start` - run production server
+- `npm run lint` - lint checks
 
 ## Tech Stack
 
-- **Next.js 16** (App Router)
-- **TypeScript**
-- **Tailwind CSS**
-- **Tambo** (`@tambo-ai/react`) — Generative UI decision engine
-- **Zod** — Schema validation
-- **Framer Motion** — Panel transitions
-- **Lucide React** — Icons
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- Tambo React SDK (`@tambo-ai/react`)
+- Zod
+- Framer Motion
+- Lucide React
