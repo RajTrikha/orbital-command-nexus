@@ -473,7 +473,14 @@ export default function FleetMapPlaceholder({
             strokeWidth={2.4}
             strokeLinecap="round"
             strokeDasharray="10 6"
-          />
+          >
+            <animate
+              attributeName="stroke-dashoffset"
+              values="0;-32"
+              dur="2.8s"
+              repeatCount="indefinite"
+            />
+          </path>
 
           <circle
             cx={hazardPos.x}
@@ -481,7 +488,20 @@ export default function FleetMapPlaceholder({
             r={hazardRadius + 11}
             fill={hazardColor}
             opacity={0.08}
-          />
+          >
+            <animate
+              attributeName="r"
+              values={`${hazardRadius + 8};${hazardRadius + 16};${hazardRadius + 8}`}
+              dur="3.2s"
+              repeatCount="indefinite"
+            />
+            <animate
+              attributeName="opacity"
+              values="0.08;0.18;0.08"
+              dur="3.2s"
+              repeatCount="indefinite"
+            />
+          </circle>
           <circle
             cx={hazardPos.x}
             cy={hazardPos.y}
@@ -489,7 +509,14 @@ export default function FleetMapPlaceholder({
             fill="none"
             stroke={hazardColor}
             strokeWidth={1.8}
-          />
+          >
+            <animate
+              attributeName="r"
+              values={`${hazardRadius};${hazardRadius + 4};${hazardRadius}`}
+              dur="3.2s"
+              repeatCount="indefinite"
+            />
+          </circle>
           <text
             x={hazardPos.x}
             y={hazardPos.y + hazardRadius + 15}
@@ -499,7 +526,14 @@ export default function FleetMapPlaceholder({
             {safeAnomaly.toUpperCase()}
           </text>
 
-          <circle cx={assetPos.x} cy={assetPos.y} r={6} fill="#22c55e" />
+          <circle cx={assetPos.x} cy={assetPos.y} r={6} fill="#22c55e">
+            <animate
+              attributeName="r"
+              values="5.5;6.8;5.5"
+              dur="1.9s"
+              repeatCount="indefinite"
+            />
+          </circle>
           <circle
             cx={assetPos.x}
             cy={assetPos.y}
@@ -508,7 +542,20 @@ export default function FleetMapPlaceholder({
             stroke="#22c55e"
             strokeWidth={1.4}
             opacity={0.65}
-          />
+          >
+            <animate
+              attributeName="r"
+              values="10;16;10"
+              dur="2.1s"
+              repeatCount="indefinite"
+            />
+            <animate
+              attributeName="opacity"
+              values="0.7;0.2;0.7"
+              dur="2.1s"
+              repeatCount="indefinite"
+            />
+          </circle>
           <text
             x={assetPos.x}
             y={assetPos.y - 14}

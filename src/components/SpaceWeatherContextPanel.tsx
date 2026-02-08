@@ -86,7 +86,7 @@ export default function SpaceWeatherContextPanel() {
   const kpLabel = useMemo(() => formatKpLevel(snapshot.kp), [snapshot.kp]);
 
   return (
-    <section className="mt-8 rounded-2xl border border-cyan-700/40 bg-gradient-to-b from-cyan-950/30 to-zinc-900/70 p-5">
+    <section className="hud-highlight mt-8 rounded-2xl p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.25em] text-cyan-300/80">

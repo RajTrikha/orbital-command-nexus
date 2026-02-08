@@ -30,6 +30,15 @@ function isRunActiveError(error: Error | null) {
   );
 }
 
+function isMissingContextIdentifierError(error: Error | null) {
+  if (!error) return false;
+  const lowered = error.message.toLowerCase();
+  return (
+    lowered.includes("require exactly one context identifier") ||
+    lowered.includes("received neither")
+  );
+}
+
 /**
  * This component is only rendered through Tambo's V1 component renderer.
  * Keeping state sync here avoids hook-order issues from HOC bootstrap renders.
@@ -88,7 +97,18 @@ export function InteractableApprovalGate(props: ApprovalGateProps) {
     [flushDecision, setDecision]
   );
 
+  const retryDecisionSync = useCallback(() => {
+    if (decision === "pending") return;
+    setDecision(decision);
+    flushDecision();
+  }, [decision, flushDecision, setDecision]);
+
   const interactionLocked = isDecisionPending;
+  const canRetrySync =
+    !isDecisionPending &&
+    decision !== "pending" &&
+    Boolean(decisionError) &&
+    !isRunActiveError(decisionError);
   const statusNote = queuedDecision
     ? "Decision queued. It will sync when the current AI run finishes."
     : isDecisionPending
@@ -96,7 +116,9 @@ export function InteractableApprovalGate(props: ApprovalGateProps) {
       : decisionError
         ? isRunActiveError(decisionError)
           ? "Run still active. Decision will sync automatically in a moment."
-          : "Decision sync failed. Try clicking again."
+          : isMissingContextIdentifierError(decisionError)
+            ? "Missing Tambo context key. Set NEXT_PUBLIC_TAMBO_USER_KEY and restart."
+            : "Decision sync failed. Use Retry Sync."
         : undefined;
 
   return (
@@ -106,6 +128,8 @@ export function InteractableApprovalGate(props: ApprovalGateProps) {
       decision={decision}
       interactionLocked={interactionLocked}
       statusNote={statusNote}
+      canRetrySync={canRetrySync}
+      onRetrySync={retryDecisionSync}
       onDecision={(next) => {
         if (interactionLocked) return;
         if (runActive) {

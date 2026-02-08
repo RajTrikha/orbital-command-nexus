@@ -55,6 +55,11 @@ export default function MissionChecklistPlaceholder({
   const safeObjective = objective?.trim() || "Complete checklist before proceeding to next panel.";
   const safeTasks = sanitizeTasks(tasks);
   const doneIds = new Set((completedTaskIds ?? []).filter((id) => typeof id === "string"));
+  const doneCount = Math.min(doneIds.size, safeTasks.length);
+  const totalCount = safeTasks.length;
+  const remainingCount = Math.max(totalCount - doneCount, 0);
+  const completionPct = Math.round((doneCount / Math.max(1, totalCount)) * 100);
+  const isComplete = totalCount > 0 && doneCount >= totalCount;
 
   const rootWidth = compact ? "max-w-xl" : "max-w-2xl";
   const rootPadding = compact ? "p-4" : "p-6";
@@ -69,12 +74,29 @@ export default function MissionChecklistPlaceholder({
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-bold tracking-tight text-cyan-200">{safeTitle}</h2>
         <span className="rounded-full border border-cyan-600/40 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-100">
-          {doneIds.size}/{safeTasks.length} done
+          {doneCount}/{totalCount} done
         </span>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-zinc-800 bg-zinc-950 p-4">
         <p className={objectiveClass}>{safeObjective}</p>
+
+        <div className="mt-3">
+          <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider">
+            <span className={isComplete ? "text-emerald-300" : "text-cyan-200/85"}>
+              {isComplete ? "Checklist complete" : `${remainingCount} tasks remaining`}
+            </span>
+            <span className="text-zinc-500">{completionPct}%</span>
+          </div>
+          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-800">
+            <div
+              className={`h-full rounded-full transition-all ${
+                isComplete ? "bg-emerald-400" : "bg-cyan-400"
+              }`}
+              style={{ width: `${completionPct}%` }}
+            />
+          </div>
+        </div>
 
         <div className="mt-4 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
           {safeTasks.map((task) => {
@@ -121,8 +143,13 @@ export default function MissionChecklistPlaceholder({
       </div>
 
       <div className="mt-auto pt-4">
+        <p className="text-center text-xs text-cyan-200/85">
+          {isComplete
+            ? "All tasks complete. Advancing to next operational panel..."
+            : "Complete all tasks to unlock the next operational panel."}
+        </p>
         {statusNote && (
-          <p className="text-center text-xs text-amber-300">{statusNote}</p>
+          <p className="mt-1 text-center text-xs text-amber-300">{statusNote}</p>
         )}
       </div>
     </div>

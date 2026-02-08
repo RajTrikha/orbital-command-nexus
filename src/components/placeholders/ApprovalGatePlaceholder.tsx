@@ -15,6 +15,10 @@ interface ApprovalGateProps {
   interactionLocked?: boolean;
   /** Optional runtime status from interactable sync */
   statusNote?: string;
+  /** Optional retry action if sync fails after a decision click */
+  onRetrySync?: () => void;
+  /** Whether retry action should be shown */
+  canRetrySync?: boolean;
   /** Compact layout for constrained action-stage rendering */
   compact?: boolean;
 }
@@ -39,6 +43,8 @@ export default function ApprovalGatePlaceholder({
   decision: externalDecision,
   interactionLocked,
   statusNote,
+  onRetrySync,
+  canRetrySync,
   compact,
 }: ApprovalGateProps) {
   const [localDecision, setLocalDecision] = useState<"pending" | "approved" | "denied">("pending");
@@ -104,7 +110,18 @@ export default function ApprovalGatePlaceholder({
             </button>
           </div>
           {statusNote && (
-            <p className="mt-3 text-center text-xs text-amber-300">{statusNote}</p>
+            <div className="mt-3 space-y-2">
+              <p className="text-center text-xs text-amber-300">{statusNote}</p>
+              {canRetrySync && onRetrySync && (
+                <button
+                  type="button"
+                  onClick={onRetrySync}
+                  className="mx-auto block rounded-md border border-amber-500/50 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-200 transition-colors hover:border-amber-400"
+                >
+                  Retry Sync
+                </button>
+              )}
+            </div>
           )}
         </div>
       ) : (
@@ -113,7 +130,18 @@ export default function ApprovalGatePlaceholder({
             {decision === "approved" ? "Approved" : "Denied"}
           </div>
           {statusNote && (
-            <p className="mt-3 text-center text-xs text-amber-300">{statusNote}</p>
+            <div className="mt-3 space-y-2">
+              <p className="text-center text-xs text-amber-300">{statusNote}</p>
+              {canRetrySync && onRetrySync && (
+                <button
+                  type="button"
+                  onClick={onRetrySync}
+                  className="mx-auto block rounded-md border border-amber-500/50 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-200 transition-colors hover:border-amber-400"
+                >
+                  Retry Sync
+                </button>
+              )}
+            </div>
           )}
         </div>
       )}

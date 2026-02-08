@@ -22,11 +22,13 @@ export default function OrbitalBackdrop() {
       <div className="orbital-gradient" />
       <div className="orbital-stars" />
       <div className="orbital-grid" />
+      <div className="orbital-scanline" />
       <div className="orbital-ring orbital-ring-a" />
       <div className="orbital-ring orbital-ring-b" />
       <div className="orbital-satellite orbital-satellite-a" />
       <div className="orbital-satellite orbital-satellite-b" />
+      <div className="orbital-sweep" />
+      <div className="orbital-vignette" />
     </div>
   );
 }
-

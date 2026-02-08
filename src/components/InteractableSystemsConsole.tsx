@@ -24,6 +24,15 @@ function isRunActiveError(error: Error | null) {
   );
 }
 
+function isMissingContextIdentifierError(error: Error | null) {
+  if (!error) return false;
+  const lowered = error.message.toLowerCase();
+  return (
+    lowered.includes("require exactly one context identifier") ||
+    lowered.includes("received neither")
+  );
+}
+
 /**
  * Interactable version used by Tambo-rendered component blocks.
  */
@@ -79,7 +88,19 @@ export function InteractableSystemsConsole(props: SystemsConsoleProps) {
   }, [flushOverride, setOverrideStatus]);
 
   const effectiveOverrideStatus = overrideStatus;
+
+  const retryOverrideSync = useCallback(() => {
+    if (effectiveOverrideStatus !== "authorized") return;
+    setOverrideStatus("authorized");
+    flushOverride();
+  }, [effectiveOverrideStatus, flushOverride, setOverrideStatus]);
+
   const interactionLocked = isOverridePending;
+  const canRetrySync =
+    !isOverridePending &&
+    effectiveOverrideStatus === "authorized" &&
+    Boolean(overrideError) &&
+    !isRunActiveError(overrideError);
   const statusNote = queuedAuthorize
     ? "Override queued. It will sync when the current AI run finishes."
     : isOverridePending
@@ -87,7 +108,9 @@ export function InteractableSystemsConsole(props: SystemsConsoleProps) {
       : overrideError
         ? isRunActiveError(overrideError)
           ? "Run still active. Override will sync automatically in a moment."
-          : "Override sync failed. Try Authorize Ground Override again."
+          : isMissingContextIdentifierError(overrideError)
+            ? "Missing Tambo context key. Set NEXT_PUBLIC_TAMBO_USER_KEY and restart."
+            : "Override sync failed. Use Retry Sync."
         : undefined;
 
   return (
@@ -97,6 +120,8 @@ export function InteractableSystemsConsole(props: SystemsConsoleProps) {
       overrideStatus={effectiveOverrideStatus}
       interactionLocked={interactionLocked}
       statusNote={statusNote}
+      canRetrySync={canRetrySync}
+      onRetrySync={retryOverrideSync}
       onAuthorize={() => {
         if (interactionLocked || effectiveOverrideStatus === "authorized") return;
         if (runActive) {

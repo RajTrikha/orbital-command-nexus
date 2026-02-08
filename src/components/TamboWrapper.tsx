@@ -1,6 +1,7 @@
 "use client";
 
-import { TamboV1Provider, defineTool } from "@tambo-ai/react/v1";
+import { useEffect } from "react";
+import { TamboV1Provider, defineTool, useTamboClient, useTamboV1Config } from "@tambo-ai/react/v1";
 import type { TamboComponent, TamboTool } from "@tambo-ai/react/v1";
 import { z } from "zod";
 import CalmDashboard from "@/components/placeholders/CalmDashboard";
@@ -368,6 +369,42 @@ const tamboContextHelpers = {
   },
 };
 
+function TamboStateUserKeyBridge() {
+  const client = useTamboClient();
+  const { userKey } = useTamboV1Config();
+  const effectiveUserKey =
+    typeof userKey === "string" && userKey.trim().length > 0 ? userKey.trim() : "orbital-operator";
+
+  useEffect(() => {
+    const stateApi = client.threads.state;
+    const originalUpdateState = stateApi.updateState.bind(stateApi);
+
+    type UpdateStateFn = typeof stateApi.updateState;
+    const patchedUpdateState: UpdateStateFn = (componentID, params, options) => {
+      const rawOptions =
+        options && typeof options === "object"
+          ? (options as { query?: Record<string, unknown> })
+          : undefined;
+      const query = rawOptions?.query ?? {};
+      return originalUpdateState(componentID, params, {
+        ...(rawOptions ?? {}),
+        query: {
+          ...query,
+          userKey: query.userKey ?? effectiveUserKey,
+        },
+      });
+    };
+
+    // eslint-disable-next-line react-hooks/immutability
+    stateApi.updateState = patchedUpdateState;
+    return () => {
+      stateApi.updateState = originalUpdateState;
+    };
+  }, [client, effectiveUserKey]);
+
+  return null;
+}
+
 export default function TamboWrapper({ children }: { children: React.ReactNode }) {
   const apiKey = process.env.NEXT_PUBLIC_TAMBO_API_KEY ?? "";
   const envUserKey = process.env.NEXT_PUBLIC_TAMBO_USER_KEY?.trim();
@@ -386,6 +423,7 @@ export default function TamboWrapper({ children }: { children: React.ReactNode }
       userKey={userKey}
       autoGenerateThreadName={false}
     >
+      <TamboStateUserKeyBridge />
       {children}
     </TamboV1Provider>
   );

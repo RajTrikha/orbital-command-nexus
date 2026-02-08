@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import AppTopBar from "@/components/AppTopBar";
 import MissionControl from "@/components/MissionControl";
 import OrbitalBackdrop from "@/components/OrbitalBackdrop";
 import SpaceWeatherContextPanel from "@/components/SpaceWeatherContextPanel";
@@ -74,40 +75,57 @@ export default function Home() {
   );
 
   return (
-    <main className="relative min-h-screen px-4 py-8 text-zinc-100">
+    <main className="relative min-h-screen px-4 pb-8 pt-24 text-zinc-100">
       <OrbitalBackdrop />
-      <div className="fixed right-4 top-4 z-50 flex gap-2">
-        <button
-          onClick={() => setMode("story")}
-          className={`rounded-lg px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
-            mode === "story"
-              ? "bg-zinc-100 text-zinc-900"
-              : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
-          }`}
-        >
-          Story
-        </button>
-        <button
-          onClick={() => setMode("ai")}
-          className={`rounded-lg px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors ${
-            mode === "ai"
-              ? "bg-blue-600 text-white"
-              : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
-          }`}
-        >
-          AI
-        </button>
-      </div>
+      <AppTopBar
+        mode={mode}
+        onModeChange={(nextMode) => setMode(nextMode)}
+        tamboAvailable={TAMBO_AVAILABLE}
+      />
 
       <div
-        className={`relative z-10 mx-auto pt-12 ${
+        className={`relative z-10 mx-auto ${
           mode === "ai" ? "max-w-7xl" : "max-w-4xl"
         }`}
       >
+        <section className="hud-highlight mb-4 rounded-xl px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-200/80">
+                Mission Overview
+              </p>
+              <h2 className="mt-1 text-base font-semibold tracking-[0.02em] text-zinc-100">
+                {mode === "ai"
+                  ? "AI-Orchestrated Orbital Incident Response"
+                  : "Deterministic Story Replay for Operations Teams"}
+              </h2>
+              <p className="mt-1 text-xs text-zinc-300">
+                Tambo drives panel selection, tool-assisted reasoning, and operator approvals in one mission timeline.
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-lg border border-cyan-700/40 bg-zinc-950/70 px-3 py-2">
+                <p className="text-[10px] uppercase tracking-wider text-zinc-500">Panels</p>
+                <p className="mt-1 text-sm font-semibold text-cyan-200">5</p>
+              </div>
+              <div className="rounded-lg border border-cyan-700/40 bg-zinc-950/70 px-3 py-2">
+                <p className="text-[10px] uppercase tracking-wider text-zinc-500">Tools</p>
+                <p className="mt-1 text-sm font-semibold text-cyan-200">3</p>
+              </div>
+              <div className="rounded-lg border border-cyan-700/40 bg-zinc-950/70 px-3 py-2">
+                <p className="text-[10px] uppercase tracking-wider text-zinc-500">Mode</p>
+                <p className="mt-1 text-sm font-semibold text-cyan-200">
+                  {mode === "ai" ? "Live AI" : "Replay"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {mode === "story" && (
           <>
             <MissionControl ui={storyUI} />
-            <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
+            <div className="hud-panel mt-6 rounded-xl px-4 py-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-widest text-zinc-500">

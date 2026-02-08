@@ -11,6 +11,8 @@ interface SystemsConsoleProps {
   onAuthorize?: () => void;
   interactionLocked?: boolean;
   statusNote?: string;
+  onRetrySync?: () => void;
+  canRetrySync?: boolean;
   compact?: boolean;
 }
 
@@ -23,6 +25,8 @@ export default function SystemsConsolePlaceholder({
   onAuthorize,
   interactionLocked,
   statusNote,
+  onRetrySync,
+  canRetrySync,
   compact,
 }: SystemsConsoleProps) {
   const [localOverrideStatus, setLocalOverrideStatus] = useState<"idle" | "authorized">("idle");
@@ -120,7 +124,18 @@ export default function SystemsConsolePlaceholder({
       </button>
 
       {statusNote && (
-        <p className="mt-3 text-center text-xs text-amber-300">{statusNote}</p>
+        <div className="mt-3 space-y-2">
+          <p className="text-center text-xs text-amber-300">{statusNote}</p>
+          {canRetrySync && onRetrySync && (
+            <button
+              type="button"
+              onClick={onRetrySync}
+              className="mx-auto block rounded-md border border-amber-500/50 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-200 transition-colors hover:border-amber-400"
+            >
+              Retry Sync
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

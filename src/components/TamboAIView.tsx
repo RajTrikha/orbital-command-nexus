@@ -32,7 +32,7 @@ interface TamboAIViewProps {
   onDiagnostics?: (d: Diagnostics) => void;
 }
 
-const JUDGE_FLOW_STEPS = [
+const GUIDED_FLOW_STEPS = [
   {
     label: "1. Orbital Hazard Map",
     prompt:
@@ -55,7 +55,7 @@ const JUDGE_FLOW_STEPS = [
   },
 ] as const;
 
-const AUTO_FLOW_STEPS = JUDGE_FLOW_STEPS.slice(0, 2);
+const AUTO_FLOW_STEPS = GUIDED_FLOW_STEPS.slice(0, 2);
 
 type MessageContent = {
   type: string;
@@ -518,23 +518,33 @@ export default function TamboAIView({ onDiagnostics }: TamboAIViewProps) {
     if (!lastComponent || lastComponent.type !== "component") return;
     if (lastComponent.name !== "MissionChecklist") return;
 
+    const componentProps =
+      lastComponent.props && typeof lastComponent.props === "object"
+        ? (lastComponent.props as Record<string, unknown>)
+        : null;
     const componentState =
       lastComponent.state && typeof lastComponent.state === "object"
         ? (lastComponent.state as Record<string, unknown>)
         : null;
+    const totalTasks = Array.isArray(componentProps?.tasks)
+      ? componentProps.tasks.filter(
+          (value) => value && typeof value === "object"
+        ).length
+      : 0;
     const completedTaskIds = Array.isArray(componentState?.completedTaskIds)
       ? componentState.completedTaskIds.filter(
           (value): value is string => typeof value === "string"
         )
       : [];
     if (completedTaskIds.length === 0) return;
+    if (totalTasks > 0 && completedTaskIds.length < totalTasks) return;
 
-    const marker = `${lastComponent.id ?? "checklist"}:${completedTaskIds.slice().sort().join(",")}`;
+    const marker = `${lastComponent.id ?? "checklist"}:${completedTaskIds.slice().sort().join(",")}:${totalTasks}`;
     if (handledChecklistRef.current === marker) return;
     handledChecklistRef.current = marker;
 
     void runPrompt(
-      "Mission checklist updated. Follow postDecision format and render the next operational panel."
+      "Mission checklist complete. Follow postDecision format and render the next operational panel."
     );
   }, [lastComponent, runPrompt]);
 
@@ -585,38 +595,14 @@ export default function TamboAIView({ onDiagnostics }: TamboAIViewProps) {
   const sideComponent = isMapComponent ? sideFallback : renderedComponent;
 
   return (
-    <div className="space-y-4 lg:h-[calc(100vh-8rem)] lg:min-h-[42rem] lg:overflow-hidden">
-      <div className="grid gap-4 lg:h-full lg:grid-cols-[1.35fr_1fr]">
-        <section className="space-y-4 lg:flex lg:min-h-0 lg:flex-col">
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900/70 px-4 py-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-200/80">
-                  Mission Operations
-                </p>
-                <p className="mt-1 text-xs text-zinc-400">
-                  Thread: {currentThreadId.slice(0, 18)} | Source:{" "}
-                  {missionControl.feedMode.toUpperCase()} | Scenario:{" "}
-                  {missionControl.scenario.replace("_", " ").toUpperCase()}
-                </p>
-              </div>
-              {isStreaming && (
-                <button
-                  type="button"
-                  onClick={handleCancelRun}
-                  className="rounded-md border border-red-500/50 bg-red-500/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-red-200 transition-colors hover:border-red-400"
-                >
-                  Cancel Run
-                </button>
-              )}
-            </div>
-          </div>
-
+    <div className="space-y-4 lg:min-h-[44rem]">
+      <div className="grid gap-4 lg:grid-cols-[1.25fr_1fr]">
+        <section className="space-y-4 lg:min-w-0">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="lg:min-h-0 lg:flex-1"
+            className="lg:min-w-0"
           >
             <FleetMapPlaceholder
               assetId={persistentMap.assetId}
@@ -626,7 +612,7 @@ export default function TamboAIView({ onDiagnostics }: TamboAIViewProps) {
             />
           </motion.div>
 
-          <div className="space-y-3 rounded-lg border border-cyan-700/40 bg-cyan-950/20 px-4 py-3">
+          <div className="hud-highlight space-y-3 rounded-lg px-4 py-3">
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
@@ -645,9 +631,9 @@ export default function TamboAIView({ onDiagnostics }: TamboAIViewProps) {
                 disabled={loading}
                 className="rounded-md border border-cyan-500/50 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-cyan-200 transition-colors hover:border-cyan-400 disabled:opacity-50"
               >
-                Run Judge Flow
+                Run Guided Flow
               </button>
-              {JUDGE_FLOW_STEPS.map((step) => (
+              {GUIDED_FLOW_STEPS.map((step) => (
                 <button
                   key={step.label}
                   type="button"
@@ -717,7 +703,7 @@ export default function TamboAIView({ onDiagnostics }: TamboAIViewProps) {
           </div>
         </section>
 
-        <section className="space-y-4 lg:grid lg:h-full lg:min-h-0 lg:grid-rows-[30rem_minmax(0,1fr)_auto] lg:gap-4 lg:space-y-0">
+        <section className="space-y-4 lg:min-w-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={lastComponent?.id ?? "empty-side"}
@@ -725,15 +711,15 @@ export default function TamboAIView({ onDiagnostics }: TamboAIViewProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="space-y-2 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:space-y-0 lg:gap-2"
+              className="space-y-2"
             >
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900/70 px-3 py-2">
+              <div className="hud-panel rounded-lg px-3 py-2">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-300/90">
                   AI Action Panel
                 </p>
               </div>
-              <div className="min-h-0 flex-1 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/60 p-2">
-                <div className="flex h-full w-full items-start justify-center">
+              <div className="hud-highlight max-h-[34rem] overflow-y-auto rounded-lg p-2">
+                <div className="flex w-full items-start justify-center">
                   <ComponentRenderBoundary fallback={sideFallback}>
                     {sideComponent}
                   </ComponentRenderBoundary>
@@ -742,7 +728,31 @@ export default function TamboAIView({ onDiagnostics }: TamboAIViewProps) {
             </motion.div>
           </AnimatePresence>
 
-          <div className="space-y-3 rounded-lg border border-zinc-800 bg-zinc-900/60 px-4 py-3 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
+          <div className="hud-panel rounded-lg px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-200/80">
+                  Mission Operations
+                </p>
+                <p className="mt-1 text-xs text-zinc-400">
+                  Thread: {currentThreadId.slice(0, 18)} | Source:{" "}
+                  {missionControl.feedMode.toUpperCase()} | Scenario:{" "}
+                  {missionControl.scenario.replace("_", " ").toUpperCase()}
+                </p>
+              </div>
+              {isStreaming && (
+                <button
+                  type="button"
+                  onClick={handleCancelRun}
+                  className="rounded-md border border-red-500/50 bg-red-500/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-red-200 transition-colors hover:border-red-400"
+                >
+                  Cancel Run
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="hud-panel space-y-3 rounded-lg px-4 py-3">
             <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
               <span>AI Thread</span>
               <button
@@ -763,7 +773,7 @@ export default function TamboAIView({ onDiagnostics }: TamboAIViewProps) {
             )}
             <div
               ref={threadRef}
-              className="max-h-64 space-y-2 overflow-y-auto pr-2 lg:max-h-none lg:min-h-0 lg:flex-1"
+              className="max-h-[22rem] space-y-2 overflow-y-auto pr-2"
             >
               {messages.length === 0 && (
                 <p className="text-xs text-zinc-500">No messages yet.</p>
@@ -934,7 +944,7 @@ export default function TamboAIView({ onDiagnostics }: TamboAIViewProps) {
             </div>
           </div>
 
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 px-4 py-2 font-mono text-[11px] text-zinc-500">
+          <div className="hud-panel rounded-lg px-4 py-2 font-mono text-[11px] text-zinc-500">
             <div className="flex flex-wrap gap-x-5 gap-y-1">
               <span>
                 tambo: <span className="text-green-400">connected</span>
